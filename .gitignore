@@ -1,0 +1,12 @@
+﻿venv/
+.venv/
+.idea/
+dataset/
+dataset_fracatlas/
+FracAtlas/
+runs/
+weights/
+temp_uploads/
+*.pt
+*.zip
+*.log
