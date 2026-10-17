@@ -9,13 +9,10 @@ from aiogram.filters import CommandStart
 from aiogram.types import Message, BufferedInputFile
 from ultralytics import YOLO
 
-# token
 load_dotenv()
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 
-
 MODEL_PATH = Path("weights/best.pt")
-
 model = YOLO(str(MODEL_PATH))
 
 bot = Bot(token=BOT_TOKEN)
@@ -25,13 +22,13 @@ dp = Dispatcher()
 @dp.message(CommandStart())
 async def handle_start(message: Message):
     await message.answer(
-        "👋 Hello! I'm waiting for the picture."
+        "Hello! Please send me an X-ray image, and I will detect potential fractures."
     )
 
 
 @dp.message(F.photo)
 async def handle_photo(message: Message):
-    status_msg = await message.answer("🔍 Please wait...")
+    status_msg = await message.answer("🔍 Analyzing the X-ray, please wait...")
 
     photo = message.photo[-1]
     file_io = io.BytesIO()
@@ -53,12 +50,12 @@ async def handle_photo(message: Message):
     output_io.seek(0)
 
     if count == 0:
-        caption = "✅ Переломов не обнаружено."
+        caption = "✅ No fractures detected with high confidence."
     else:
         conf_list = [f"{float(box.conf[0]) * 100:.1f}%" for box in result.boxes]
         caption = (
-            f"⚠️ Обнаружено зон перелома: {count}\n"
-            f"Уверенность ИИ: {', '.join(conf_list)}"
+            f"⚠️ Detected potential fracture zones: {count}\n"
+            f"AI Confidence: {', '.join(conf_list)}"
         )
 
     input_file = BufferedInputFile(output_io.getvalue(), filename="result.jpg")
@@ -66,7 +63,15 @@ async def handle_photo(message: Message):
     await status_msg.delete()
 
 
+@dp.message(F.text)
+async def handle_text(message: Message):
+    await message.answer(
+        "I can only analyze images. Please send an X-ray photo to get started."
+    )
+
+
 async def main():
+    print("Bot is running...")
     await dp.start_polling(bot)
 
 
